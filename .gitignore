@@ -1,0 +1,22 @@
+# Maven
+target/
+*.war
+*.jar
+
+# IntelliJ IDEA
+.idea/
+*.iml
+out/
+
+# Logs
+*.log
+logs/
+
+# Local configuration
+*.local.properties
+db.properties
+.env
+
+# OS
+.DS_Store
+Thumbs.db
