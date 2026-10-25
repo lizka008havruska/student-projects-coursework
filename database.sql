@@ -33,7 +33,7 @@ CREATE TABLE submission (
     repo_url       VARCHAR(255),
     submitted_date DATE,
     f1             DOUBLE NOT NULL DEFAULT 0,   -- повнота реалізації
-    f2             DOUBLE NOT NULL DEFAULT 0,   -- результат перевірок
+    f2             DOUBLE NOT NULL DEFAULT 0,   -- результат перевірок (середня оцінка рецензій)
     f3             DOUBLE NOT NULL DEFAULT 0,   -- якість документації
     integral_index DOUBLE NOT NULL DEFAULT 0,   -- I = 0,40*F1 + 0,35*F2 + 0,25*F3
     FOREIGN KEY (project_id) REFERENCES project(id),
@@ -44,7 +44,7 @@ CREATE TABLE submission (
     CONSTRAINT chk_submission_f3 CHECK (f3 BETWEEN 0 AND 100)
 );
 
--- Рецензія на подання
+-- Рецензія на подання (середня оцінка рецензій = фактор F2 подання)
 CREATE TABLE review (
     id            BIGINT PRIMARY KEY AUTO_INCREMENT,
     submission_id BIGINT NOT NULL,
@@ -68,8 +68,8 @@ INSERT INTO project(title, description, technology, difficulty) VALUES
 ('Монітор складу', 'Облік товарів на складі з історією операцій.', 'Java/MySQL', 4);
 
 INSERT INTO submission(project_id, student_id, state, repo_url, submitted_date, f1, f2, f3, integral_index) VALUES
-(1, 1, 'ACCEPTED',  'https://github.com/example/library-app',  '2026-10-05', 90, 85, 80, 85.75),
-(2, 2, 'REVIEW',    'https://github.com/example/task-planner', '2026-10-12', 70, 60, 50, 61.50),
+(1, 1, 'ACCEPTED',  'https://github.com/example/library-app',  '2026-10-05', 90, 88, 80, 86.80),
+(2, 2, 'REVIEW',    'https://github.com/example/task-planner', '2026-10-12', 70, 62, 50, 62.20),
 (3, 3, 'SUBMITTED', 'https://github.com/example/stock-monitor','2026-10-15', 55,  0, 30, 29.50),
 (1, 2, 'DRAFT',     NULL,                                      NULL,          0,  0,  0,  0.00);
 
