@@ -11,6 +11,14 @@ public class DBUtil {
     private static final String USER = System.getProperty("db.user", "root");
     private static final String PASSWORD = System.getProperty("db.password", "");
 
+    static {
+        try {
+            Class.forName("com.mysql.cj.jdbc.Driver");
+        } catch (ClassNotFoundException e) {
+            throw new IllegalStateException("Не знайдено JDBC-драйвер MySQL (mysql-connector-j)", e);
+        }
+    }
+
     public static Connection getConnection() throws SQLException {
         return DriverManager.getConnection(URL, USER, PASSWORD);
     }
