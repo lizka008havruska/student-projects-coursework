@@ -23,3 +23,15 @@
 
 Правила: F1, F3 виставляє викладач у стані ПЕРЕВІРКА; F2 = середня оцінка рецензій;
 I = 0,40·F1 + 0,35·F2 + 0,25·F3.
+
+## Етап 3: клієнт–серверна система
+Маршрут: JavaFX → HttpStudentProjectsClient → HTTP/JSON → Servlet → Service → DAO → JDBC → MySQL.
+Опис маршрутів і приклади запитів: `docs/http-api.md`.
+
+1. Запустити MySQL (XAMPP) і виконати `database.sql`.
+2. `cd server && mvn clean package` → `server/target/student-projects-server.war`.
+3. Скопіювати WAR у `<TOMCAT 9>/webapps`, запустити Tomcat (`bin/catalina.bat run`).
+4. Перевірити в браузері: `http://localhost:8080/student-projects-server/students` — має повернутися JSON.
+5. `cd client && mvn javafx:run` — запуск JavaFX-клієнта (запускати з каталогу `client`, інакше CSV не знайдеться).
+
+Адреса сервера в клієнті змінюється параметром `-Dapi.base=http://хост:порт/student-projects-server`.
