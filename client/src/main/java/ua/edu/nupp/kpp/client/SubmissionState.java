@@ -1,6 +1,9 @@
 package ua.edu.nupp.kpp.client;
 
-/** Стани життєвого циклу подання: ЧЕРНЕТКА → ПОДАНО → ПЕРЕВІРКА → ПРИЙНЯТО. */
+/**
+ * Стани життєвого циклу подання (ті самі значення, що й на сервері).
+ * Допустимість переходів перевіряє лише сервер (SubmissionService).
+ */
 public enum SubmissionState {
     DRAFT("ЧЕРНЕТКА"),
     SUBMITTED("ПОДАНО"),
@@ -12,9 +15,4 @@ public enum SubmissionState {
     SubmissionState(String title) { this.title = title; }
 
     public String getTitle() { return title; }
-
-    /** Допустимий лише перехід до наступного стану за порядком. */
-    public boolean canMoveTo(SubmissionState target) {
-        return target != null && target.ordinal() == this.ordinal() + 1;
-    }
 }
