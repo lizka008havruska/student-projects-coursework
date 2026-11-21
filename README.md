@@ -1,37 +1,72 @@
 # Інформаційна система подання та перевірки студентських програмних проєктів
 
-Курсова робота з дисципліни «Кросплатформене програмування», варіант 5, група 202-ТН.
+Курсова робота з дисципліни «Кросплатформене програмування», група 202-ТН, варіант 5.
+
+Система дозволяє подавати студентські програмні проєкти, рецензувати їх та оцінювати за інтегральним
+показником **I = 0,40·F1 + 0,35·F2 + 0,25·F3** (F1 — повнота реалізації, F2 — середня оцінка рецензій,
+F3 — якість документації). Подання проходить чотири стани: ЧЕРНЕТКА → ПОДАНО → ПЕРЕВІРКА → ПРИЙНЯТО.
+
+## Технології
+Java 21, Maven, JavaFX 21 (клієнт), Servlet API 4.0.1 + Apache Tomcat 9 (сервер), JDBC + MySQL/MariaDB (XAMPP),
+Jackson (JSON), JUnit 5, `java.util.logging`.
 
 ## Структура
-- `database.sql` — створення БД `student_projects` з нуля + демонстраційні дані
-- `server/` — Maven-проєкт (WAR): моделі, DBUtil, DAO (JDBC), Service (валідація, життєвий цикл, інтегральний показник)
-- `client/` — Maven-проєкт JavaFX: моделі, `sample-data/projects.csv`
-- `docs/` — схема БД (diagrams.net)
+```
+database.sql        створення БД student_projects з нуля + демонстраційні дані
+server/             Maven-проєкт (WAR): моделі, DAO, Service, Servlet, тести JUnit 5
+client/             Maven-проєкт JavaFX: HTTP-клієнт, інтерфейс, CSV-імпорт, sample-data/
+docs/               схема БД, схема життєвого циклу, схема маршруту, опис HTTP API, сценарій демонстрації
+```
+Маршрут виконання: JavaFX → HttpStudentProjectsClient → HTTP/JSON → Servlet → Service → DAO → JDBC → MySQL.
 
-## Запуск етапу 1
-1. Запустити MySQL (XAMPP) і виконати `database.sql` у phpMyAdmin.
-2. `cd server && mvn compile exec:java` — перевірка JDBC-з'єднання.
-3. `cd client && mvn javafx:run` — заглушка клієнта.
+## 1. Підготовка MySQL
+1. Запустити MySQL (і Apache для phpMyAdmin) у XAMPP.
+2. У phpMyAdmin відкрити вкладку «Імпорт», вибрати `database.sql` і виконати. Буде створено базу
+   `student_projects` (таблиці student, project, submission, review) і початкові записи.
+   Скрипт можна виконувати повторно: він пересоздає базу.
 
-Для іншого користувача/пароля MySQL: `-Ddb.user=... -Ddb.password=...`.
+## 2. Сервер
+```
+cd server
+mvn clean test         # модульні тести JUnit 5 (MySQL і Tomcat не потрібні)
+mvn clean package      # створює server/target/student-projects-server.war
+```
+Скопіювати WAR у `<Tomcat 9>/webapps` і запустити Tomcat (`bin/catalina.bat run`; потрібен `JAVA_HOME`).
+Перевірка: `http://localhost:8080/student-projects-server/students` має повернути JSON.
+Маршрути та приклади запитів — `docs/http-api.md`.
 
-## Етап 2: перевірка серверної логіки
-1. Повторно виконати `database.sql` (демо-дані оновлено).
-2. `cd server && mvn test` — 20 тестів JUnit 5 (логіка без MySQL).
-3. `cd server && mvn compile exec:java -Dexec.mainClass=ua.edu.nupp.kpp.server.CrudCheck` —
-   CRUD, правила Service, показник I і життєвий цикл на реальній MySQL (тестові записи видаляються).
+## 3. JavaFX-клієнт
+```
+cd client
+mvn javafx:run
+```
+Запускати з каталогу `client` (відносний шлях `sample-data/...`). Адреса сервера за замовчуванням
+`http://localhost:8080/student-projects-server`, змінюється параметром `-Dapi.base=...`.
 
-Правила: F1, F3 виставляє викладач у стані ПЕРЕВІРКА; F2 = середня оцінка рецензій;
-I = 0,40·F1 + 0,35·F2 + 0,25·F3.
+## 4. Тести
+```
+cd server && mvn clean test      # 30 тестів: показник, нормування, життєвий цикл, валідація
+cd client && mvn clean test      # 7 тестів: заголовок і рядки CSV
+```
 
-## Етап 3: клієнт–серверна система
-Маршрут: JavaFX → HttpStudentProjectsClient → HTTP/JSON → Servlet → Service → DAO → JDBC → MySQL.
-Опис маршрутів і приклади запитів: `docs/http-api.md`.
+## 5. CSV-імпорт
+Вкладка «Проєкти» → поле «Файл CSV» → «Імпортувати з CSV». Імпорт працює у фоні (JavaFX Task), хід виконання
+показує ProgressBar, повторний запуск під час імпорту заблоковано.
 
-1. Запустити MySQL (XAMPP) і виконати `database.sql`.
-2. `cd server && mvn clean package` → `server/target/student-projects-server.war`.
-3. Скопіювати WAR у `<TOMCAT 9>/webapps`, запустити Tomcat (`bin/catalina.bat run`).
-4. Перевірити в браузері: `http://localhost:8080/student-projects-server/students` — має повернутися JSON.
-5. `cd client && mvn javafx:run` — запуск JavaFX-клієнта (запускати з каталогу `client`, інакше CSV не знайдеться).
+Формат: UTF-8, роздільник `;`, перший рядок — заголовок `title;description;technology;difficulty`.
 
-Адреса сервера в клієнті змінюється параметром `-Dapi.base=http://хост:порт/student-projects-server`.
+| Стовпець | Тип | Обов'язковий |
+| --- | --- | --- |
+| title | текст (унікальна назва) | так |
+| description | текст | ні |
+| technology | текст | так |
+| difficulty | ціле 1–5 | так |
+
+Приклад: `Облік бібліотечних фондів;Облік книг, читачів і видач;Java/JavaFX;3`.
+Некоректні рядки пропускаються з причиною; проєкт із назвою, що вже існує, сервер відхиляє, тому повторний імпорт
+не створює дублікатів. Файли в `client/sample-data/`: `projects.csv` (коректний), `projects_errors.csv`
+(помилкові рядки), `projects_bad_header.csv` (неправильний заголовок).
+
+## 6. Логування
+Сервер і клієнт пишуть події через `java.util.logging` (Tomcat — у консоль і `logs/`). Імпорт фіксує початок,
+пропущені рядки з причинами, кількість успішних записів і завершення. Паролі та токени не логуються.
